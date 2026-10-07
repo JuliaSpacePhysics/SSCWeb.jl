@@ -34,7 +34,5 @@ using PrecompileTools: @setup_workload, @compile_workload
     rm(dir; recursive = true)
 end
 
-# Workload calls get inlined into the closure; REPL calls dispatch to these standalone instances.
-for T in (String, DateTime, Date), n in 1:4
-    precompile(locations, (String, T, T, ntuple(_ -> Symbol, n)...))
-end
+# The network path can't run offline, but inferring it halves first-fetch compile time.
+precompile(fetch_locations, (String, DateTime, DateTime, Vector{Symbol}, Int))
