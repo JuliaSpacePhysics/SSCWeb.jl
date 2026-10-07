@@ -1,0 +1,20 @@
+name = "SSCWeb"
+uuid = "1280ba4a-f457-4534-8d39-928e45007e51"
+version = "0.1.0"
+authors = ["Beforerr <zzj956959688@gmail.com> and contributors"]
+
+[workspace]
+projects = ["test"]
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
+
+[compat]
+Dates = "1"
+Downloads = "1"
+JSON = "0.21, 1"
+PrecompileTools = "1"
+julia = "1.10"
