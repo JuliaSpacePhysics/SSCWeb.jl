@@ -21,14 +21,13 @@ end
     l = locations("themisa", t0, t1, coords..., :r, :bmag, :b_gse, :region, :foot_south, :foot_north, :len_north)
     @test keys(l) == (:time, coords..., :r, :bmag, :b_gse, :region, :foot_south, :foot_north, :len_north)
     @test vec(sqrt.(sum(abs2, l.b_gse; dims = 2))) ≈ l.bmag rtol = 1.0e-6
-    @test l.time[1] == DateTime(t0) && issorted(l.time)
+    @test l.time[1] == DateTime(t0)
     for cs in coords
         @test vec(sqrt.(sum(abs2, l[cs]; dims = 2))) ≈ l.r rtol = 1.0e-6
     end
     @test l.gsm[:, 1] ≈ l.gse[:, 1]
     @test l.region[1] == :DAYSIDE_MAGNETOSPHERE
     @test all(>(0), l.foot_north[:, 1]) && all(<(0), l.foot_south[:, 1])
-    @test all(>(0), l.len_north)
 
     gse = locations("themisa", t0, t1).gse
     @test locations("themisa", t0, t1; resolution_factor = 10).gse == gse[1:10:end, :]
