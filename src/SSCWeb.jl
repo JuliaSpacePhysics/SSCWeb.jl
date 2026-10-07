@@ -6,8 +6,6 @@ using JSON: JSON
 
 export observatories, ground_stations, locations, clear_cache!
 
-@doc read(joinpath(dirname(@__DIR__), "README.md"), String) SSCWeb
-
 const BASE_URL = "https://sscweb.gsfc.nasa.gov/WS/sscr/2"
 
 const COORDS = (geo = "Geo", gm = "Gm", gse = "Gse", gsm = "Gsm", sm = "Sm", geitod = "GeiTod", geij2000 = "GeiJ2000")
@@ -53,13 +51,8 @@ function ground_stations()
     end
 end
 
-"""
-    locations(id, t0, t1, vars...=:gse; resolution_factor=1, cache=true) -> NamedTuple
-
-See the package README for `vars` and caching.
-"""
 function locations(id, t0, t1, vars::Symbol...; resolution_factor = 1, cache = true)
-    # A Vector, not the Tuple, keeps one compiled method for every combination of vars.
+    # Vector keeps one compiled method for every combination of vars.
     vs = isempty(vars) ? [:gse] : collect(Symbol, vars)
     for v in vs
         v in VARS || throw(ArgumentError("unknown var :$v; valid: $(join(VARS, ", "))"))
@@ -84,7 +77,7 @@ empty_column(v) =
 
 include("cache.jl")
 
-# No BFieldModel: the server default is IGRF + T89c (Kp = 3), traced to 100 km.
+# BFieldModel: the server default is IGRF + T89c (Kp = 3), traced to 100 km.
 function data_request(id, t0, t1, vars; resolution_factor = 1)
     io = IOBuffer()
     print(io, """<DataRequest xmlns="http://sscweb.gsfc.nasa.gov/schema">""")
@@ -145,7 +138,7 @@ function check_status(result)
     return
 end
 
-# JSON over XML: smaller and ~5x faster to parse. SSC documents its JSON as less stable than XML.
+# JSON over XML: smaller and faster to parse. SSC documents its JSON as less stable than XML.
 const HEADERS = ["Accept" => "application/json"]
 
 get_json(path) = untag(JSON.parse(fetch_body(BASE_URL * path; headers = HEADERS)))

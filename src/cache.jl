@@ -74,7 +74,7 @@ rows(x::AbstractMatrix, r) = x[r, :]
 rows(x::AbstractVector, r) = x[r]
 
 # Whole UTC days are fetched (and stored if `store`), so samples sit on a grid anchored at
-# UTC midnight regardless of `t0`, and ranges shorter than the server minimum still work.
+# UTC midnight regardless of `t0`.
 function day_locations(id, t0, t1, vars, rf; store = true, retry = true)
     days = Date(t0):Day(1):Date(t1)
     chunks = [store ? read_day(day_path(id, rf, d), vars) : Dict{Symbol, Any}() for d in days]
