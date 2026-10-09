@@ -1,7 +1,7 @@
 module SSCWeb
 
 using Dates: Date, DateTime, Day, UTC, UTM, now, value
-using Downloads: request
+using Downloads: Curl, Downloader, request
 using JSON: JSON
 
 export observatories, ground_stations, locations, clear_cache!
@@ -36,10 +36,11 @@ const TRACES = (foot_north = "North", foot_south = "South", len_north = "North",
 
 const VARS = (keys(COORDS)..., keys(SCALARS)..., :b_gse, keys(TRACES)...)
 
+# Concrete field types: a Union field makes `show` print the full NamedTuple type on every row.
 function observatories()
-    T = @NamedTuple{id::String, name::String, resolution::Int, start::DateTime, stop::DateTime, resource_id::Union{String, Missing}}
+    T = @NamedTuple{id::String, name::String, resolution::Int, start::DateTime, stop::DateTime, resource_id::String}
     return T[
-        (o["Id"], o["Name"], o["Resolution"], o["StartTime"], o["EndTime"], get(o, "ResourceId", missing))
+        (o["Id"], o["Name"], o["Resolution"], o["StartTime"], o["EndTime"], get(o, "ResourceId", ""))
             for o in get_json("/observatories")["Observatory"]
     ]
 end
@@ -148,9 +149,20 @@ function post_json(path, xml)
     return untag(JSON.parse(fetch_body(BASE_URL * path; method = "POST", input = IOBuffer(xml), headers)))
 end
 
+# gzip: JSON responses shrink ~10x, halving request time. Downloads doesn't enable it by default.
+# Created lazily: a Downloader holds a libcurl handle, which cannot be precompiled.
+const DOWNLOADER = Ref{Downloader}()
+
+function downloader()
+    isassigned(DOWNLOADER) && return DOWNLOADER[]
+    d = Downloader()
+    d.easy_hook = (easy, _) -> Curl.setopt(easy, Curl.CURLOPT_ACCEPT_ENCODING, "")
+    return DOWNLOADER[] = d
+end
+
 function fetch_body(url; input = nothing, retries = 3, kw...)
     out = IOBuffer()
-    resp = request(url; output = out, throw = false, input = isnothing(input) ? nothing : seekstart(input), kw...)
+    resp = request(url; output = out, throw = false, input = isnothing(input) ? nothing : seekstart(input), downloader = downloader(), kw...)
     # Transport errors include a reused connection the server already closed, which curl
     # cannot replay because the request body is not rewindable.
     if resp isa Exception

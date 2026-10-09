@@ -5,7 +5,7 @@ Spacecraft ephemerides and geospace regions from NASA's [Satellite Situation Cen
 ```julia
 using SSCWeb
 
-observatories()     # Vector of (id, name, resolution [s], start, stop, resource_id)
+observatories()     # Vector of (id, name, resolution [s], start, stop, resource_id); resource_id is "" when SSC has none
 ground_stations()   # Vector of (id, name, lat, lon)
 
 loc = locations("mms1", "2020-01-01", "2020-01-02")    # GSE position
